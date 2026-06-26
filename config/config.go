@@ -48,7 +48,7 @@ type config struct {
 	HashLength     int          `envconfig:"HASH_LENGTH" default:"6"`
 	UseSessionFile bool         `envconfig:"USE_SESSION_FILE" default:"true"`
 	UserSession    string       `envconfig:"USER_SESSION"`
-	UsePublicIP    bool         `envconfig:"USE_PUBLIC_IP" default:"false"`
+	UsePublicIP    bool         `envconfig:"FQDN" default:"https://web-production-28f8.up.railway.app"`` default:"false"`
 	AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
 	MultiTokens    []string
 
