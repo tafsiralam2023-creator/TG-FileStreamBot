@@ -1,4 +1,4 @@
-package config
+Host config
 
 import (
 	"errors"
@@ -48,9 +48,9 @@ type config struct {
 	HashLength     int          `envconfig:"HASH_LENGTH" default:"6"`
 	UseSessionFile bool         `envconfig:"USE_SESSION_FILE" default:"true"`
 	UserSession    string       `envconfig:"USER_SESSION"`
-	UsePublicIP    FQDN         `envconfig:"FQDN"`
-	AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
-	MultiTokens    []strig
+	Host           string       `envconfig:"HOST" default:"https://web-production-28f8.up.railway.app"`
+    AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
+	MultiTokens    []string
 
 	// stream specific config
 	StreamConcurrency int `envconfig:"STREAM_CONCURRENCY" default:"4"`
@@ -178,7 +178,7 @@ func (c *config) setupEnvVars(log *zap.Logger, cmd *cobra.Command) {
 		ipBlocked = true
 	}
 	if c.Host == "" {
-		c.Host = "http://" + ip + ":" + strconv.Itoa(c.Port)
+		c.Host = "https://web-production-28f8.up.railway.app/stream/video.mp4"
 		if c.UsePublicIP {
 			if ipBlocked {
 				log.Sugar().Warn("Can't get public IP, using local IP")
