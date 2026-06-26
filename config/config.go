@@ -48,9 +48,9 @@ type config struct {
 	HashLength     int          `envconfig:"HASH_LENGTH" default:"6"`
 	UseSessionFile bool         `envconfig:"USE_SESSION_FILE" default:"true"`
 	UserSession    string       `envconfig:"USER_SESSION"`
-	UsePublicIP    bool         `envconfig:"FQDN" default:"https://web-production-28f8.up.railway.app"`` default:"false"`
+	UsePublicIP    FQDN         `envconfig:"FQDN"`
 	AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
-	MultiTokens    []string
+	MultiTokens    []strig
 
 	// stream specific config
 	StreamConcurrency int `envconfig:"STREAM_CONCURRENCY" default:"4"`
