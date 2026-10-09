@@ -15,21 +15,18 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Set up Go
+      uses: actions/setup-go@v4
       with:
-        python-version: '3.10'
+        go-version: '1.20'
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Run Bot
+    - name: Build and Run
       env:
         API_ID: ${{ secrets.API_ID }}
         API_HASH: ${{ secrets.API_HASH }}
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         LOG_CHANNEL: ${{ secrets.LOG_CHANNEL }}
         PORT: ${{ secrets.PORT }}
-      run: python3 -m bot
+      run: |
+        go build -o bot .
+        ./bot
