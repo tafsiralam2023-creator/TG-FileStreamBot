@@ -12,22 +12,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
 
-    - name: Build and Run
-      env:
-        API_ID: ${{ secrets.API_ID }}
-        API_HASH: ${{ secrets.API_HASH }}
-        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-        LOG_CHANNEL: ${{ secrets.LOG_CHANNEL }}
-        PORT: ${{ secrets.PORT }}
-      run: |
-        MAIN_DIR=$(find . -name "*.go" -exec grep -l "package main" {} + | xargs -n 1 dirname | head -n 1)
-        go build -o bot "$MAIN_DIR"
-        ./bot
+      - name: Build and Run
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          LOG_CHANNEL: ${{ secrets.LOG_CHANNEL }}
+          PORT: ${{ secrets.PORT }}
+        run: |
+          MAIN_DIR=$(find . -name "*.go" -exec grep -l "package main" {} + | xargs -n 1 dirname | head -n 1)
+          go build -o bot "$MAIN_DIR"
+          ./bot server
