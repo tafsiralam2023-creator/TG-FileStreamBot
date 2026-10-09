@@ -44,11 +44,11 @@ type config struct {
 	LogChannelID   int64        `envconfig:"LOG_CHANNEL" required:"true"`
 	Dev            bool         `envconfig:"DEV" default:"false"`
 	Port           int          `envconfig:"PORT" default:"8080"`
-	Host           string       `envconfig:"HOST" default:"https://web-production-28f8.up.railway.app"`
+	Host           string       `envconfig:"HOST" default:""`
 	HashLength     int          `envconfig:"HASH_LENGTH" default:"6"`
 	UseSessionFile bool         `envconfig:"USE_SESSION_FILE" default:"true"`
 	UserSession    string       `envconfig:"USER_SESSION"`
-	UsePublicIP    bool         `envconfig:"USE_PUBLIC_IP" default:"false"`
+	UsePublicIP    bool         `envconfig:"USE_PUBLIC_IP" default:"true"`
 	AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
 	MultiTokens    []string
 
@@ -68,9 +68,6 @@ func (c *config) loadFromEnvFile(log *zap.Logger) {
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Sugar().Errorf("ENV file not found: %s", envPath)
-			log.Sugar().Info("Please create fsb.env file")
-			log.Sugar().Info("For more info, refer: https://github.com/EverythingSuckz/TG-FileStreamBot/tree/golang#setting-up-things")
-			log.Sugar().Info("Please ignore this message if you are hosting it in a service like Heroku or other alternatives.")
 		} else {
 			log.Fatal("Unknown error while parsing env file.", zap.Error(err))
 		}
@@ -170,25 +167,17 @@ func (c *config) setupEnvVars(log *zap.Logger, cmd *cobra.Command) {
 	if err != nil {
 		log.Fatal("Error while parsing env variables", zap.Error(err))
 	}
-	var ipBlocked bool
+
 	ip, err := getIP(c.UsePublicIP)
 	if err != nil {
 		log.Error("Error while getting IP", zap.Error(err))
-		ipBlocked = true
 	}
+
 	if c.Host == "" {
-		c.Host = "https://web-production-28f8.up.railway.app/index.mp4?url="
-		if c.UsePublicIP {
-			if ipBlocked {
-				log.Sugar().Warn("Can't get public IP, using local IP")
-			} else {
-				log.Sugar().Warnf("Using Public IP: %s", ip)
-				log.Sugar().Warn("You are using a public IP, please be aware of the security risks while exposing your IP to the internet.")
-				log.Sugar().Warn("Use 'HOST' variable to set a domain name")
-			}
-		}
-		log.Sugar().Info("HOST not set, automatically set to " + c.Host)
+		c.Host = "http://" + ip + ":" + strconv.Itoa(c.Port)
+		log.Sugar().Info("HOST set automatically to " + c.Host)
 	}
+
 	val := reflect.ValueOf(c).Elem()
 	for _, env := range os.Environ() {
 		if strings.HasPrefix(env, "MULTI_TOKEN") {
@@ -207,32 +196,7 @@ func Load(log *zap.Logger, cmd *cobra.Command) {
 	ValueOf.setupEnvVars(log, cmd)
 	ValueOf.LogChannelID = int64(stripInt(log, int(ValueOf.LogChannelID)))
 	if ValueOf.HashLength == 0 {
-		log.Sugar().Info("HASH_LENGTH can't be 0, defaulting to 6")
 		ValueOf.HashLength = 6
-	}
-	if ValueOf.HashLength > 32 {
-		log.Sugar().Info("HASH_LENGTH can't be more than 32, changing to 32")
-		ValueOf.HashLength = 32
-	}
-	if ValueOf.HashLength < 5 {
-		log.Sugar().Info("HASH_LENGTH can't be less than 5, defaulting to 6")
-		ValueOf.HashLength = 6
-	}
-	if ValueOf.StreamConcurrency <= 0 {
-		log.Sugar().Info("STREAM_CONCURRENCY must be greater than 0, defaulting to 4")
-		ValueOf.StreamConcurrency = 4
-	}
-	if ValueOf.StreamBufferCount <= 0 {
-		log.Sugar().Info("STREAM_BUFFER_COUNT must be greater than 0, defaulting to 8")
-		ValueOf.StreamBufferCount = 8
-	}
-	if ValueOf.StreamTimeoutSec <= 0 {
-		log.Sugar().Info("STREAM_TIMEOUT_SEC must be greater than 0, defaulting to 30 seconds")
-		ValueOf.StreamTimeoutSec = 30
-	}
-	if ValueOf.StreamMaxRetries <= 0 {
-		log.Sugar().Info("STREAM_MAX_RETRIES must be greater than 0, defaulting to 3")
-		ValueOf.StreamMaxRetries = 3
 	}
 }
 
@@ -273,19 +237,7 @@ func GetPublicIP() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if !checkIfIpAccessible(string(ip)) {
-		return string(ip), errors.New("PORT is blocked by firewall")
-	}
 	return string(ip), nil
-}
-
-func checkIfIpAccessible(ip string) bool {
-	conn, err := net.Dial("tcp", ip+":80")
-	if err != nil {
-		return false
-	}
-	defer conn.Close()
-	return true
 }
 
 func stripInt(log *zap.Logger, a int) int {
