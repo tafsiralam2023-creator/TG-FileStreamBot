@@ -182,6 +182,7 @@ func (c *config) setupEnvVars(log *zap.Logger, cmd *cobra.Command) {
 			if ipBlocked {
 				log.Sugar().Warn("Can't get public IP, using local IP")
 			} else {
+				log.Sugar().Warnf("Using Public IP: %s", ip)
 				log.Sugar().Warn("You are using a public IP, please be aware of the security risks while exposing your IP to the internet.")
 				log.Sugar().Warn("Use 'HOST' variable to set a domain name")
 			}
