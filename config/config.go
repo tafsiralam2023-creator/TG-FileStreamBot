@@ -44,12 +44,12 @@ type config struct {
 	LogChannelID   int64        `envconfig:"LOG_CHANNEL" required:"true"`
 	Dev            bool         `envconfig:"DEV" default:"false"`
 	Port           int          `envconfig:"PORT" default:"8080"`
-	Host           string       `envconfig:"HOST" default:""`
+	Host           string       `envconfig:"HOST" default:"https://web-production-28f8.up.railway.app"`
 	HashLength     int          `envconfig:"HASH_LENGTH" default:"6"`
 	UseSessionFile bool         `envconfig:"USE_SESSION_FILE" default:"true"`
 	UserSession    string       `envconfig:"USER_SESSION"`
-	Host           string       `envconfig:"HOST" default:"https://web-production-28f8.up.railway.app"`
-    AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
+	UsePublicIP    bool         `envconfig:"USE_PUBLIC_IP" default:"false"`
+	AllowedUsers   allowedUsers `envconfig:"ALLOWED_USERS"`
 	MultiTokens    []string
 
 	// stream specific config
@@ -109,9 +109,9 @@ func (c *config) loadConfigFromArgs(log *zap.Logger, cmd *cobra.Command) {
 	if botToken != "" {
 		os.Setenv("BOT_TOKEN", botToken)
 	}
-	logChannelID, _ := cmd.Flags().GetString("log-channel")
-	if logChannelID != "" {
-		os.Setenv("LOG_CHANNEL", logChannelID)
+	logChannelID, _ := cmd.Flags().GetInt64("log-channel")
+	if logChannelID != 0 {
+		os.Setenv("LOG_CHANNEL", strconv.FormatInt(logChannelID, 10))
 	}
 	dev, _ := cmd.Flags().GetBool("dev")
 	if dev {
@@ -144,7 +144,6 @@ func (c *config) loadConfigFromArgs(log *zap.Logger, cmd *cobra.Command) {
 	multiTokens, _ := cmd.Flags().GetString("multi-token-txt-file")
 	if multiTokens != "" {
 		os.Setenv("MULTI_TOKEN_TXT_FILE", multiTokens)
-		// TODO: Add support for importing tokens from a separate file
 	}
 	streamConcurrency, _ := cmd.Flags().GetInt("stream-concurrency")
 	if streamConcurrency != 0 {
@@ -192,7 +191,10 @@ func (c *config) setupEnvVars(log *zap.Logger, cmd *cobra.Command) {
 	val := reflect.ValueOf(c).Elem()
 	for _, env := range os.Environ() {
 		if strings.HasPrefix(env, "MULTI_TOKEN") {
-			c.MultiTokens = append(c.MultiTokens, botTokenRegex.FindStringSubmatch(env)[1])
+			match := botTokenRegex.FindStringSubmatch(env)
+			if len(match) > 1 {
+				c.MultiTokens = append(c.MultiTokens, match[1])
+			}
 		}
 	}
 	val.FieldByName("MultiTokens").Set(reflect.ValueOf(c.MultiTokens))
@@ -250,7 +252,6 @@ func getIP(public bool) (string, error) {
 	return ip, nil
 }
 
-// https://stackoverflow.com/a/23558495/15807350
 func getInternalIP() (string, error) {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
