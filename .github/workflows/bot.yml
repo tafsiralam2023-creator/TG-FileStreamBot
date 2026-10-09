@@ -10,6 +10,7 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
 
     steps:
       - name: Checkout Code
@@ -27,6 +28,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           LOG_CHANNEL: ${{ secrets.LOG_CHANNEL }}
           PORT: ${{ secrets.PORT }}
+          HOST: ${{ secrets.HOST }}
         run: |
           MAIN_DIR=$(find . -name "*.go" -exec grep -l "package main" {} + | xargs -n 1 dirname | head -n 1)
           go build -o bot "$MAIN_DIR"
