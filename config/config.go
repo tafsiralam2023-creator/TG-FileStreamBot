@@ -1,4 +1,4 @@
-Host config
+package config
 
 import (
 	"errors"
