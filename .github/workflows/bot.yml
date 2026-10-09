@@ -28,5 +28,5 @@ jobs:
         LOG_CHANNEL: ${{ secrets.LOG_CHANNEL }}
         PORT: ${{ secrets.PORT }}
       run: |
-        go build -o bot .
+        go build -o bot ./cmd/fsh
         ./bot
