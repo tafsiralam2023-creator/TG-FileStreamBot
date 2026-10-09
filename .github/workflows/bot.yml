@@ -28,5 +28,6 @@ jobs:
         LOG_CHANNEL: ${{ secrets.LOG_CHANNEL }}
         PORT: ${{ secrets.PORT }}
       run: |
-        go build -o bot ./cmd/fsh
+        MAIN_DIR=$(find . -name "*.go" -exec grep -l "package main" {} + | xargs -n 1 dirname | head -n 1)
+        go build -o bot "$MAIN_DIR"
         ./bot
